@@ -1,0 +1,1 @@
+- Add overrides for the returned models and categories to enable locked features?
