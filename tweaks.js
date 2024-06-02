@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ChatGPT tweaks
 // @version      0.0.1
-// @description  Blocks tracking requests from ChatGPT, change tab title and icon, fix compliance issues
+// @description  Various tweaks for ChatGPT
 // @match        *://chatgpt.com/*
 // @run-at       document-start
 // @grant        unsafeWindow
