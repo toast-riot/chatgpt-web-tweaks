@@ -63,7 +63,7 @@
     function updateModelParameter(originalRequest) {
         const requestData = JSON.parse(originalRequest.body);
 
-        newRequestData.model = prompt("Model");
+        requestData.model = prompt("Model");
         // requestData.model = "text-davinci-002-render-sha";
 
         console.log(requestData);
@@ -73,10 +73,8 @@
 
     //TODO: Also do ratelimit display
     //TODO: Show tokens / other info for each message
-    //https://greasyfork.org/en/scripts/468905-chatgpt-model-switcher-supports-gpt-4-mobile-and-all-available-models/code
     //https://greasyfork.org/ru/scripts/494909-chatgpt-backend-api-hook/code
     //https://rentry.org/5a8vx
-    //https://github.com/DevArqSangoi/das-gptInfoTool/tree/main
     //https://greasyfork.org/en/scripts/462804-keepchatgpt
 
     const customModels = [
@@ -92,11 +90,12 @@
 
             customModels.forEach(model => {
                 let customModel = new ModelCategory(model);
-                // window.models.push(customModel.model);
-                window.categories.push(customModel.category);
+                // data.models.push(customModel.model);
+                data.categories.push(customModel.category);
             });
 
             console.log(data);
+
 
             return new Response(JSON.stringify(data), {
                 status: 200,
