@@ -11,41 +11,38 @@
 'use strict';
 
 //=== CONFIG ===//
-const tabTitle = 'New Tab';
-const block_url = /gravatar\.com|browser-intake-datadoghq\.com|\.wp\.com|intercomcdn\.com|sentry\.io|sentry_key=|intercom\.io|featuregates\.org|\/v1\/initialize|\/messenger\/|statsigapi\.net|\/rgstr|\/v1\/sdk_exception/;
+const tabTitle = 'New Tab'; //Set to empty string to disable
+const filteredURLs = /gravatar\.com|browser-intake-datadoghq\.com|\.wp\.com|intercomcdn\.com|sentry\.io|sentry_key=|intercom\.io|featuregates\.org|\/v1\/initialize|\/messenger\/|statsigapi\.net|\/rgstr|\/v1\/sdk_exception/;
+const preventTracking = true;
+const preventCompliance = false;
 
 
-//=== SCRIPT ===//
+//=== PRIVACY ===//
 const compliance_response = {"registration_country":null,"require_cookie_consent":false,"terms_of_use":{"is_required":false,"display":null},"cookie_consent":null,"age_verification":null};
 
-navigator.sendBeacon = () => {};
+if (preventTracking) navigator.sendBeacon = () => {};
 unsafeWindow.fetch = new Proxy(fetch, {
     apply: function (target, thisArg, argumentsList) {
         const fetchUrl = argumentsList[0];
-        if (block_url.test(fetchUrl)) {
-            console.log('Blocked:', fetchUrl);
+        if (preventTracking && filteredURLs.test(fetchUrl)) {
             return Promise.resolve({});
         }
-        // if (fetchUrl.includes('/backend-api/compliance')) {
-        //     return Promise.resolve({ json: () => compliance_response });
-        // }
+        if (preventCompliance && fetchUrl.includes('/backend-api/compliance')) {
+            return Promise.resolve({ json: () => compliance_response });
+        }
         return target.apply(thisArg, argumentsList)
             .catch(console.error);
     }
 });
 
 
-const headObserver = new MutationObserver(function(mutations) {
-    mutations.forEach(function(mutation) {
-        if (document.title !== tabTitle) {
-            document.title = tabTitle;
-        }
-        for (const node of document.querySelectorAll('head link[rel="icon"]')) {
-            node.href = 'data:image/png;base64,'
-        }
+//=== CUSTOM TAB ===//
+const headObserver = new MutationObserver(() => {
+    document.title = tabTitle;
+    document.querySelectorAll('head link[rel="icon"]').forEach(node => {
+        node.href = 'data:image/png;base64,';
     });
 });
-
 
 if (tabTitle != '') {
     headObserver.observe(document.querySelector('head'), {childList: true});

@@ -13,8 +13,8 @@
     function updateModelParameter(originalRequest) {
         const requestData = JSON.parse(originalRequest.body);
 
-        requestData.model = prompt("Model");
-        // requestData.model = "text-davinci-002-render-sha";
+        // requestData.model = prompt("Model");
+        requestData.model = "text-davinci-002-render-sha";
 
         console.log(requestData);
 
