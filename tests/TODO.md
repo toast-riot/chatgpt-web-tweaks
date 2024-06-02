@@ -1,1 +1,2 @@
 - Add overrides for the returned models and categories to enable locked features?
+- Bypass "this model does not support using tools"

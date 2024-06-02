@@ -24,7 +24,7 @@ const trackingURLs = /gravatar\.com|browser-intake-datadoghq\.com|\.wp\.com|inte
 // Will default to GPT-3.5 if the control key is not pressed
 const saveQuota = true;
 // Override the model even if the message is a variant
-const saveQuotaHarsh = false;
+const saveQuotaHarsh = true;
 // Model to use when saving quota. This is the only one that will work, for free users
 // While you can change it, the response you get will still be from this model
 const saveQuotaModel = "text-davinci-002-render-sha";
@@ -66,8 +66,8 @@ function updateModelParameter(sourceRequest) {
     // requestData.model = prompt("Model", requestData.model);
     // console.log(requestData);
 
-    alert("Model: " + requestData.model);
-    requestData.model = saveQuotaModel;
+    // alert("Model: " + requestData.model);
+    // requestData.model = saveQuotaModel;
 
     return { ...sourceRequest, body: JSON.stringify(requestData) };
 }
