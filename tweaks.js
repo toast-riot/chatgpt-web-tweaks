@@ -11,14 +11,28 @@
 'use strict';
 
 //=== CONFIG ===//
-const tabTitle = 'New Tab'; //Set to empty string to disable
-const filteredURLs = /gravatar\.com|browser-intake-datadoghq\.com|\.wp\.com|intercomcdn\.com|sentry\.io|sentry_key=|intercom\.io|featuregates\.org|\/v1\/initialize|\/messenger\/|statsigapi\.net|\/rgstr|\/v1\/sdk_exception/;
+//Use a custom tab title. Blank string to disable
+const tabTitle = 'New Tab';
+
+//Block tracking requests
 const preventTracking = true;
+//Regex to match tracking URLs
+const trackingURLs = /gravatar\.com|browser-intake-datadoghq\.com|\.wp\.com|intercomcdn\.com|sentry\.io|sentry_key=|intercom\.io|featuregates\.org|\/v1\/initialize|\/messenger\/|statsigapi\.net|\/rgstr|\/v1\/sdk_exception/;
+
+//Fix compliance issues. Only use if you need to
 const preventCompliance = false;
+
+//Will default to GPT-3.5 if the control key is not pressed
 const saveQuota = true;
+const saveQuotaHarsh = true;
 
 
-//=== QUOTA SAVER ===//
+
+//=== SCRIPT ===//
+const compliance_response = {"registration_country":null,"require_cookie_consent":false,"terms_of_use":{"is_required":false,"display":null},"cookie_consent":null,"age_verification":null};
+
+
+//- Quota saving
 let controlKeyIsDown = false;
 addEventListener('keydown', function(event) {
     if (event.key === "Control") controlKeyIsDown = true;
@@ -31,23 +45,39 @@ addEventListener('keyup', function(event) {
 function updateModelParameter(sourceRequest) {
     const requestData = JSON.parse(sourceRequest.body);
 
-    if (!controlKeyIsDown) requestData.model = "text-davinci-002-render-sha";
+    //If the message is a variant (requestData.action === "variant"), don't change the model unless saveQuotaHarsh is enabled
+    //If the message is new ("next"), change the model to the default unless the control key is pressed
+
+    if (requestData.action === "variant") {
+        if (saveQuotaHarsh) {
+            requestData.model = "text-davinci-002-render-sha";
+        }
+    }
+    // If the message is new, change the model to the default unless the control key is pressed
+    else {
+        if (!controlKeyIsDown) {
+            requestData.model = "text-davinci-002-render-sha";
+        }
+    }
 
     // requestData.model = prompt("Model", requestData.model);
     // console.log(requestData);
+
+
+    //Temporary alert for testing
+    alert("Model: " + requestData.model);
+    requestData.model = "text-davinci-002-render-sha";
 
     return { ...sourceRequest, body: JSON.stringify(requestData) };
 }
 
 
-//=== MAIN ===//
-const compliance_response = {"registration_country":null,"require_cookie_consent":false,"terms_of_use":{"is_required":false,"display":null},"cookie_consent":null,"age_verification":null};
-
+//- Main
 if (preventTracking) navigator.sendBeacon = () => {};
 unsafeWindow.fetch = new Proxy(fetch, {
     apply: function (target, thisArg, argumentsList) {
         const [fetchUrl, fetchOptions] = argumentsList;
-        if (preventTracking && filteredURLs.test(fetchUrl)) {
+        if (preventTracking && trackingURLs.test(fetchUrl)) {
             return Promise.resolve({});
         }
         if (preventCompliance && fetchUrl.includes('/backend-api/compliance')) {
@@ -62,7 +92,7 @@ unsafeWindow.fetch = new Proxy(fetch, {
 });
 
 
-//=== CUSTOM TAB ===//
+//- Custom tab
 const headObserver = new MutationObserver(() => {
     document.title = tabTitle;
     document.querySelectorAll('head link[rel="icon"]').forEach(node => {
