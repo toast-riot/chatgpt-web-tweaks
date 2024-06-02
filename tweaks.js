@@ -55,7 +55,7 @@ function updateModelParameter(sourceRequest) {
     const requestData = JSON.parse(sourceRequest.body);
 
     if (requestData.action === "variant") {
-        if (saveQuotaHarsh  && !controlKeyIsDown) {
+        if (saveQuotaHarsh && !controlKeyIsDown) {
             requestData.model = saveQuotaModel;
         }
     }
