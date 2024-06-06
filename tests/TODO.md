@@ -2,3 +2,4 @@
 - Bypass "this model does not support using tools" and not being able to use 3.5 in a chat with tools. Maybe use the model adding script to override the tools flags of gpt-3.5?
 - Add my CSS to the script?
 - Check if it is actually saving quota
+- Make it use the "auto" model parameter in the request instead of the variant?

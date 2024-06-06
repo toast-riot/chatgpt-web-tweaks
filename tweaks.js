@@ -106,4 +106,76 @@ if (tabTitle != '') {
     document.title = tabTitle;
 }
 
+
+//- Custom CSS
+const style = document.createElement('style');
+style.textContent = `
+:root {
+    /*=== DEBUGGING CONFIG ===*/
+    --debug:;
+    --debug_outline: 1px solid red;
+    /*========================*/
+
+    --display: var(--debug, none)
+}
+
+/*- Misc */
+
+/*ChatGPT can make mistakes removed */
+.md\:px-\[60px\].text-token-text-secondary.text-xs.text-center.py-2.px-2.relative > span {
+    outline: 1px solid red !important;
+    display: none;
+}
+
+/* No time sorting */
+/* .juice\:bg-token-sidebar-surface-primary.juice\:z-20.juice\:top-0.juice\:sticky > .items-center.h-9.flex {
+    outline: 1px solid red !important;
+} */
+
+
+/* Chat suggestions */
+.gap-4.justify-center.items-stretch.flex-wrap.max-w-3xl.flex.mt-12.mx-3 {
+    outline: var(--debug_outline) !important;
+    display: var(--display)
+}
+
+/*- No premuim */
+/* Upgrade plan sidebar item */
+.dark\:border-white\/20.juice\:py-2.empty\:hidden.pt-2.flex-col.flex {
+    outline: var(--debug_outline) !important;
+    display: var(--display)
+}
+
+
+/*- Dissociate */
+/* GPT pfp */
+.items-end.relative.flex-col.flex.flex-shrink-0 {
+    outline: var(--debug_outline) !important;
+    display: var(--display)
+}
+
+
+/*- Feedback */
+/* Bad response button */
+.flex.p-1.rounded-xl.justify-start.items-center > .items-center.flex > .flex > span > .hover\:bg-token-main-surface-secondary.text-token-text-secondary.rounded-lg > .justify-center.items-center.w-\[30px\].h-\[30px\].flex {
+    outline: var(--debug_outline) !important;
+    display: var(--display)
+}
+/* Is this conversation helpful so far */
+/* .pb-9.text-sm.flex-col.flex > .mx-auto > div  { */
+.empty\:hidden.w-full.mt-3 {
+    outline: var(--debug_outline) !important;
+    display: var(--display)
+}
+/* .text-sm.text-token-text-secondary.bg-token-main-surface-secondary.rounded-md.p-4.items-center.justify-between.flex {
+    outline: var(--debug_outline) !important;
+    display: var(--display)
+} */
+/* .text-sm.flex-col.flex > .mx-auto {
+    outline: var(--debug_outline) !important;
+    display: var(--display)
+} */
+`;
+document.head.appendChild(style);
+
 })();
