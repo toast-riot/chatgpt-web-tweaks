@@ -1,25 +1,28 @@
 (function () {
-    function testScript(action, harsh, controlDown) {
-        let model = 'auto';
-
-        if (action === "variant") {
+    function testScript(model, harsh, controlDown) {
+        let outmodel = model;
+        if (model === '4o') {
             if (harsh && !controlDown) {
-                model = '3.5';
+                outmodel = '3.5';
             }
         }
         else if (!controlDown) {
-            model = '3.5';
+            outmodel = '3.5';
         }
 
-        console.log(`action: ${action}, harsh: ${harsh}, controlDown: ${controlDown}, model: ${model}`);
+        console.log(`model: ${model}, harsh: ${harsh}, controlDown: ${controlDown}, outmodel: ${outmodel}`);
     }
 
-    testScript("variant", true, true);
-    testScript("variant", true, false);
-    testScript("variant", false, true);
-    testScript("variant", false, false);
-    testScript("other", true, true);
-    testScript("other", true, false);
-    testScript("other", false, true);
-    testScript("other", false, false);
+    testScript("3.5", true, true);
+    testScript("3.5", true, false);
+    testScript("3.5", false, true);
+    testScript("3.5", false, false);
+    testScript("auto", true, true);
+    testScript("auto", true, false);
+    testScript("auto", false, true);
+    testScript("auto", false, false);
+    testScript("4o", true, true);
+    testScript("4o", true, false);
+    testScript("4o", false, true);
+    testScript("4o", false, false);
 })();
