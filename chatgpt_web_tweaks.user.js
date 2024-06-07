@@ -89,18 +89,18 @@ const config = {
 
 //=== SCRIPT ===//
 
-let controlKeyIsDown = false;
+let overrideKeyDown = false;
 
 const utils = {
     updateModelParameter: function(sourceRequest) {
         const requestData = JSON.parse(sourceRequest.body);
 
         if (requestData.model === 'gpt-4o') {
-            if (config.quotaSaving.harshFiltering && !controlKeyIsDown) {
+            if (config.quotaSaving.harshFiltering && !overrideKeyDown) {
                 requestData.model = config.quotaSaving.model;
             }
         }
-        else if (!controlKeyIsDown) {
+        else if (!overrideKeyDown) {
             requestData.model = config.quotaSaving.model;
         }
 
@@ -115,10 +115,10 @@ const utils = {
 const setup = {
     controlKeyListener: function controlKeyListener() {
         addEventListener('keydown', function(event) {
-            if (event.key === config.quotaSaving.overrideKey) controlKeyIsDown = true;
+            if (event.key === config.quotaSaving.overrideKey) overrideKeyDown = true;
         });
         addEventListener('keyup', function(event) {
-            if (event.key === config.quotaSaving.overrideKey) controlKeyIsDown = false;
+            if (event.key === config.quotaSaving.overrideKey) overrideKeyDown = false;
         });
     },
 
