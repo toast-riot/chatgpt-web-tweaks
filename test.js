@@ -1,28 +1,33 @@
-(function () {
-    function testScript(model, harsh, controlDown) {
-        let outmodel = model;
-        if (model === '4o') {
-            if (harsh && !controlDown) {
-                outmodel = '3.5';
-            }
-        }
-        else if (!controlDown) {
-            outmodel = '3.5';
-        }
+(function() {
 
-        console.log(`model: ${model}, harsh: ${harsh}, controlDown: ${controlDown}, outmodel: ${outmodel}`);
+function updateModelParameter() {
+
+    console.log(requestData.model);
+
+    if (requestData.model === '4o') {
+        if (config.quotaSaving.harshFiltering && !controlKeyIsDown) {
+            requestData.model = config.quotaSaving.model;
+        }
+    }
+    else if (!controlKeyIsDown) {
+        requestData.model = config.quotaSaving.model;
     }
 
-    testScript("3.5", true, true);
-    testScript("3.5", true, false);
-    testScript("3.5", false, true);
-    testScript("3.5", false, false);
-    testScript("auto", true, true);
-    testScript("auto", true, false);
-    testScript("auto", false, true);
-    testScript("auto", false, false);
-    testScript("4o", true, true);
-    testScript("4o", true, false);
-    testScript("4o", false, true);
-    testScript("4o", false, false);
-})();
+    // requestData.model = prompt("Model", requestData.model);
+    // console.log(requestData);
+
+    // alert("Model: " + requestData.model);
+    console.log(requestData.model);
+    requestData.model = config.quotaSaving.model;
+}
+
+requestData = {model: '4o'}
+config = {quotaSaving: {
+    model: '3.5',
+    harshFiltering: false
+}}
+controlKeyIsDown = false
+
+updateModelParameter()
+
+})()

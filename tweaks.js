@@ -33,7 +33,7 @@ const config = {
     quotaSaving: {
         enabled: true,
         // Override the model even if the message is a variant
-        harshFiltering: true,
+        harshFiltering: false,
         // Model to use when saving quota. This is the only one that will work, for free users
         // I think OpenAI has implemented a check for whether the model is valid so any other models other than the ones in the GUI will just redirect to 3.5
         model: "text-davinci-002-render-sha",
@@ -99,7 +99,9 @@ function controlKeyListener() {
 function updateModelParameter(sourceRequest) {
     const requestData = JSON.parse(sourceRequest.body);
 
-    if (requestData.action === "variant") {
+    console.log(requestData.model);
+
+    if (requestData.model === 'gpt-4o') {
         if (config.quotaSaving.harshFiltering && !controlKeyIsDown) {
             requestData.model = config.quotaSaving.model;
         }
@@ -111,9 +113,8 @@ function updateModelParameter(sourceRequest) {
     // requestData.model = prompt("Model", requestData.model);
     // console.log(requestData);
 
-    alert("Model: " + requestData.model);
-    // requestData.model = config.quotaSaving.model;
-    return 'test';
+    console.log(requestData.model);
+    requestData.model = config.quotaSaving.model;
 
     return { ...sourceRequest, body: JSON.stringify(requestData) };
 }
@@ -132,7 +133,6 @@ function proxyFetch() {
             }
             if (config.quotaSaving.enabled && fetchUrl.includes('/backend-api/conversation') && fetchOptions.method === "POST" && fetchOptions.body) {
                 argumentsList[1] = updateModelParameter(fetchOptions);
-                if (argumentsList[1] = 'test') { return; }
             }
             return target.apply(thisArg, argumentsList)
                 .catch(console.error);
