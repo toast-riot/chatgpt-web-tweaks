@@ -21,7 +21,6 @@ const config = {
         icon: 'data:image/png;base64,'
     },
 
-
     //- Block tracking requests
     preventTracking: {
         enabled: true,
@@ -29,9 +28,9 @@ const config = {
         trackingURLs: /gravatar\.com|browser-intake-datadoghq\.com|\.wp\.com|intercomcdn\.com|sentry\.io|sentry_key=|intercom\.io|featuregates\.org|\/v1\/initialize|\/messenger\/|statsigapi\.net|\/rgstr|\/v1\/sdk_exception/,
     },
 
-
     //- Save quota by defaulting to another model
     quotaSaving: {
+        // This might not work for paid users
         enabled: true,
         // Always override the model even if 4o is requested specifically
         harshFiltering: false,
@@ -42,18 +41,12 @@ const config = {
         model: "text-davinci-002-render-sha",
     },
 
-    //- Fix compliance issues
-    // Only use if you need to
-    complianceFix: {
-        enabled: false,
-        response: {"registration_country":null,"require_cookie_consent":false,"terms_of_use":{"is_required":false,"display":null},"cookie_consent":null,"age_verification":null}
-    },
-
     //- Element blocker
     elementBlocker: {
         enabled: true,
         // Outline blocked elements instead of hiding them
         debug: false,
+        // CSS selectors of elements to block. Make sure to escape backslashes
         blockElements: {
             //- Misc
             //ChatGPT can make mistakes
@@ -75,11 +68,19 @@ const config = {
         },
     },
 
+    //- Fix compliance issues
+    // Only use if you need to
+    complianceFix: {
+        enabled: false,
+        // Response to return when checking if compliance is required
+        response: {"registration_country":null,"require_cookie_consent":false,"terms_of_use":{"is_required":false,"display":null},"cookie_consent":null,"age_verification":null}
+    },
+
     //- Custom CSS
     customCSS: {
         enabled: false,
         CSS: ``
-    }
+    },
 
 }
 //=== END CONFIG ===//
