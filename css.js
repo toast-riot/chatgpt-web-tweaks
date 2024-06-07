@@ -1,5 +1,5 @@
 const config = {
-    elementBlocker: false,
+    elementBlockerEnabled: false,
     blockElements: {
         //- Misc
         //ChatGPT can make mistakes
@@ -27,7 +27,7 @@ const config = {
 function customCSS() {
     let css = config.customCSS || '';
 
-    if (config.elementBlocker) {
+    if (config.elementBlockerEnabled) {
         Object.entries(config.blockElements).forEach(([selector, block]) => {
             if (!block) return;
             css += `${selector} {\n\t${config.elementBlockerDebug ? 'outline: 1px solid red !important' : 'display: none !important'};\n}\n`;

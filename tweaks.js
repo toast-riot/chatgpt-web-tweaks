@@ -35,6 +35,33 @@ const config = {
     // Only use if you need to
     preventCompliance: false,
 
+    //- Element blocker
+    elementBlockerEnabled: true,
+    blockElements: {
+        //- Misc
+        //ChatGPT can make mistakes
+        '.md\\:px-\\[60px\\].text-token-text-secondary.text-xs.text-center.py-2.px-2.relative > span': true,
+        //Chat suggestions
+        '.gap-4.justify-center.items-stretch.flex-wrap.max-w-3xl.flex.mt-12.mx-3': true,
+        //GPT pfp
+        '.items-end.relative.flex-col.flex.flex-shrink-0': true,
+
+        //- No premium
+        //Upgrade plan sidebar item
+        '.dark\\:border-white\\/20.juice\\:py-2.empty\\:hidden.pt-2.flex-col.flex': true,
+
+        //- Feedback
+        //Bad response button
+        '.flex.p-1.rounded-xl.justify-start.items-center > .items-center.flex > .flex > span > .hover\\:bg-token-main-surface-secondary.text-token-text-secondary.rounded-lg > .justify-center.items-center.w-\\[30px\\].h-\\[30px\\].flex': true,
+        //Is this conversation helpful so far
+        '.empty\\:hidden.w-full.mt-3': true
+    },
+    // Outline blocked elements instead of hiding them
+    elementBlockerDebug: true,
+
+    //- Custom CSS
+    customCSS: ``
+
 }
 //=== END CONFIG ===//
 
@@ -44,14 +71,16 @@ const config = {
 const compliance_response = {"registration_country":null,"require_cookie_consent":false,"terms_of_use":{"is_required":false,"display":null},"cookie_consent":null,"age_verification":null};
 
 
-//- Quota saving
-let controlKeyIsDown = false;
-addEventListener('keydown', function(event) {
-    if (event.key === "Control") controlKeyIsDown = true;
-});
-addEventListener('keyup', function(event) {
-    if (event.key === "Control") controlKeyIsDown = false;
-});
+//- Save quota
+function controlKeyListener() {
+    let controlKeyIsDown = false;
+    addEventListener('keydown', function(event) {
+        if (event.key === "Control") controlKeyIsDown = true;
+    });
+    addEventListener('keyup', function(event) {
+        if (event.key === "Control") controlKeyIsDown = false;
+    });
+}
 
 
 function updateModelParameter(sourceRequest) {
@@ -77,37 +106,65 @@ function updateModelParameter(sourceRequest) {
 
 
 //- Main
-if (config.preventTracking) navigator.sendBeacon = () => {};
-unsafeWindow.fetch = new Proxy(fetch, {
-    apply: function (target, thisArg, argumentsList) {
-        const [fetchUrl, fetchOptions] = argumentsList;
-        if (config.preventTracking && config.trackingURLs.test(fetchUrl)) {
-            return Promise.resolve({});
+function proxyFetch() {
+    if (config.preventTracking) navigator.sendBeacon = () => {};
+    unsafeWindow.fetch = new Proxy(fetch, {
+        apply: function (target, thisArg, argumentsList) {
+            const [fetchUrl, fetchOptions] = argumentsList;
+            if (config.preventTracking && config.trackingURLs.test(fetchUrl)) {
+                return Promise.resolve({});
+            }
+            if (config.preventCompliance && fetchUrl.includes('/backend-api/compliance')) {
+                return Promise.resolve({ json: () => compliance_response });
+            }
+            if (config.saveQuota && fetchUrl.includes('/backend-api/conversation') && fetchOptions.method === "POST" && fetchOptions.body) {
+                argumentsList[1] = updateModelParameter(fetchOptions);
+            }
+            return target.apply(thisArg, argumentsList)
+                .catch(console.error);
         }
-        if (config.preventCompliance && fetchUrl.includes('/backend-api/compliance')) {
-            return Promise.resolve({ json: () => compliance_response });
-        }
-        if (config.saveQuota && fetchUrl.includes('/backend-api/conversation') && fetchOptions.method === "POST" && fetchOptions.body) {
-            argumentsList[1] = updateModelParameter(fetchOptions);
-        }
-        return target.apply(thisArg, argumentsList)
-            .catch(console.error);
-    }
-});
+    })
+}
 
 
 //- Custom tab
-const headObserver = new MutationObserver(() => {
-    document.title = config.tabTitle;
-    document.querySelectorAll('head link[rel="icon"]').forEach(node => {
-        node.href = 'data:image/png;base64,';
+function customTab() {
+    const headObserver = new MutationObserver(() => {
+        document.title = config.tabTitle;
+        document.querySelectorAll('head link[rel="icon"]').forEach(node => {
+            node.href = 'data:image/png;base64,';
+        });
     });
-});
 
-if (config.tabTitle) {
     headObserver.observe(document.querySelector('head'), {childList: true});
     document.title = config.tabTitle;
 }
 
 
+//- Custom CSS
+function customCSS() {
+    let css = config.customCSS || '';
+
+    if (config.elementBlockerEnabled) {
+        Object.entries(config.blockElements).forEach(([selector, block]) => {
+            if (!block) return;
+            css += `${selector} {\n\t${config.elementBlockerDebug ? 'outline: 1px solid red !important' : 'display: none !important'};\n}\n`;
+        });
+    }
+
+    if (!css) return;
+    const style = document.createElement('style');
+    style.textContent = css;
+    document.head.appendChild(style);
+}
+
+
+(function main() {
+
+    controlKeyListener();
+    proxyFetch();
+    if (config.tabTitle) customTab();
+    customCSS();
+
+})();
 })();
