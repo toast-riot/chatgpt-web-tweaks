@@ -16,7 +16,7 @@
 const config = {
     //- Use a custom tab title and icon
     customTab: {
-        enabled: true,
+        enabled: false,
         title: 'New Tab',
         icon: 'data:image/png;base64,'
     },
@@ -106,6 +106,8 @@ const utils = {
 
         // requestData.model = prompt("Model", requestData.model);
         // console.log(requestData);
+
+        // console.log(requestData.model);
         // requestData.model = config.quotaSaving.model;
 
         return { ...sourceRequest, body: JSON.stringify(requestData) };
@@ -128,6 +130,7 @@ const setup = {
             apply: function (target, thisArg, argumentsList) {
                 const [fetchUrl, fetchOptions] = argumentsList;
                 if (config.preventTracking.enabled && config.preventTracking.trackingURLs.test(fetchUrl)) {
+                    console.log('Blocked tracking request: ', fetchUrl);
                     return Promise.resolve({});
                 }
                 if (config.preventTracking.enabled && fetchUrl.includes('/backend-api/compliance')) {
