@@ -1,5 +1,5 @@
 # ChatGPT Web Tweaks
-This is a UserScript that makes some minor changes to the UI and behaviour of the ChatGPT web interface.
+This is a UserScript that makes some QOL changes to the UI and behaviour of the ChatGPT web interface.
 
 **[Install the script](https://github.com/toast-riot/chatgpt-web-tweaks/raw/main/chatgpt_web_tweaks.user.js)**
 
