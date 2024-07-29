@@ -36,7 +36,7 @@ const config = {
         harshFiltering: false,
         // Key to hold to temporarily disable quota saving
         overrideKey: 'Control',
-        // Model to use when saving quota. This is the only one that will work, for free users
+        // Model to use when saving quota
         // I think OpenAI has implemented a check for whether the model is valid so any other models other than the ones in the GUI will just redirect to 3.5
         model: "text-davinci-002-render-sha",
     },
@@ -147,15 +147,20 @@ const setup = {
 
     customTab: function() {
         if (!config.customTab.enabled) return;
-        const headObserver = new MutationObserver(() => {
-            document.title = config.customTab.title;
-            document.querySelectorAll('head link[rel="icon"]').forEach(node => {
-                node.href = config.customTab.icon;
-            });
+
+        document.querySelectorAll('head link[rel="icon"]').forEach(node => {
+            node.href = config.customTab.icon;
         });
 
-        headObserver.observe(document.querySelector('head'), {childList: true});
         document.title = config.customTab.title;
+
+        const originalTitle = document.title;
+        Object.defineProperty(document, 'title', {
+            get: function() {
+                return originalTitle;
+            },
+            set: function(title) {}
+        });
     },
 
     customCSS: function() {
