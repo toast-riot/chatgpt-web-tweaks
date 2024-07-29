@@ -5,6 +5,9 @@
 // @grant        unsafeWindow
 // ==/UserScript==
 
+
+// If I ever go adding more categories, I'll probably also make a hook for the icon request, so I can use custom icons too.
+
 (function () {
     "use strict";
 
