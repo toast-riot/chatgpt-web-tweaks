@@ -1,9 +1,5 @@
 // ==UserScript==
-// @name         ChatGPT tweaks
-// @description  Various tweaks for ChatGPT
-// @author       toast_riot
-// @namespace    https://github.com/toast-riot/chatgpt-web-tweaks
-// @version      0.0.1
+// @name         customModels
 // @match        *://chatgpt.com/*
 // @run-at       document-start
 // @grant        unsafeWindow

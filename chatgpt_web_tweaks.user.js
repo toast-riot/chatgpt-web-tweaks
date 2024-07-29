@@ -14,6 +14,11 @@
 
 //===   CONFIG   ===//
 const config = {
+    //- Global settings
+    global: {
+        logging: true
+    },
+
     //- Use a custom tab title and icon
     customTab: {
         enabled: false,
@@ -28,18 +33,30 @@ const config = {
         trackingURLs: /gravatar\.com|browser-intake-datadoghq\.com|\.wp\.com|intercomcdn\.com|sentry\.io|sentry_key=|intercom\.io|featuregates\.org|\/v1\/initialize|\/messenger\/|statsigapi\.net|\/rgstr|\/v1\/sdk_exception|chatgpt\.com\/ces/,
     },
 
-    //- Save quota by defaulting to another model
+    //- Save model quota by defaulting to a different model
+    // Might not work for paid users
     quotaSaving: {
-        // This might not work for paid users
-        enabled: true,
+        enabled: false,
         // Always override the model even if 4o is requested specifically
         harshFiltering: false,
         // Key to hold to temporarily disable quota saving
         overrideKey: 'Control',
         // Model to use when saving quota
         // I think OpenAI has implemented a check for whether the model is valid so any other models other than the ones in the GUI will just redirect to 3.5
-        // You can use "text-davinci-002-render-sha" for GPT 3.5. This model is still officially provided in the web interface, it just does not have a category and is therefore not selectable
+        // Use "text-davinci-002-render-sha" for GPT-3.5
         model: "gpt-4o-mini",
+    },
+
+    //- Add more models. By default, this will just add GPT-3.5 back
+    // If you want to add more models, check out tests/customModels.js in the repo. It has info you can use to work it out yourself
+    // Putting in a random model slug returns very different responses to text-davinci-002-render-sha, so I know there's at least one other model that works
+    moreModels: {
+        enabled: true,
+        categories: [
+            // GPT-3.5
+            {"category": "custom","human_category_name": "GPT-3.5","human_category_short_name": "3.5","color": "#000000","icon": "","subscription_level": "free","default_model": "text-davinci-002-render-sha","short_explainer": "GPT-3.5 returned","tagline": "GPT-3.5 returned"}
+        ],
+        models: []
     },
 
     //- Element blocker
@@ -66,7 +83,7 @@ const config = {
             '.flex.p-1.rounded-xl.justify-start.items-center > .items-center.flex > .flex > span > .hover\\:bg-token-main-surface-secondary.text-token-text-secondary.rounded-lg > .justify-center.items-center.w-\\[30px\\].h-\\[30px\\].flex': true,
             //Is this conversation helpful so far
             '.empty\\:hidden.w-full.mt-3': true
-        },
+        }
     },
 
     //- Fix compliance issues
@@ -81,7 +98,7 @@ const config = {
     customCSS: {
         enabled: false,
         CSS: ``
-    },
+    }
 
 }
 //=== END CONFIG ===//
@@ -93,6 +110,10 @@ const config = {
 let overrideKeyDown = false;
 
 const utils = {
+    log: function(...args) {
+        if (!config.global.logging) { return }
+        console.log('[ChatGPT Tweaks]', ...args);
+    },
     updateModelParameter: function(sourceRequest) {
         const requestData = JSON.parse(sourceRequest.body);
 
@@ -128,19 +149,36 @@ const setup = {
     proxyFetch: function() {
         if (config.preventTracking.enabled) navigator.sendBeacon = () => {};
         unsafeWindow.fetch = new Proxy(fetch, {
-            apply: function (target, thisArg, argumentsList) {
+            apply: async function (target, thisArg, argumentsList) {
                 const [fetchUrl, fetchOptions] = argumentsList;
+
                 if (config.preventTracking.enabled && config.preventTracking.trackingURLs.test(fetchUrl)) {
-                    console.log('Blocked tracking request: ', fetchUrl);
+                    utils.log('Blocked tracking request: ', fetchUrl);
                     return Promise.resolve({});
                 }
+
                 if (config.preventTracking.enabled && fetchUrl.includes('/backend-api/compliance')) {
                     return Promise.resolve({ json: () => config.complianceFix.response });
                 }
+
                 if (config.quotaSaving.enabled && fetchUrl.includes('/backend-api/conversation') && fetchOptions.method === "POST" && fetchOptions.body) {
                     argumentsList[1] = utils.updateModelParameter(fetchOptions);
                 }
-                return target.apply(thisArg, argumentsList)
+
+                if (config.moreModels.enabled && fetchUrl.includes('/backend-api/models')) {
+                    const realResponse = await target.apply(thisArg, argumentsList);
+                    const data = await realResponse.json();
+
+                    data.categories.push(...config.moreModels.categories);
+                    data.models.push(...config.moreModels.models);
+
+                    return new Response(JSON.stringify(data), {
+                        status: 200,
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                }
+
+                return await target.apply(thisArg, argumentsList)
                     .catch(console.error);
             }
         })
@@ -187,6 +225,7 @@ const setup = {
 
 function main() {
     Object.values(setup).forEach(func => func());
+    utils.log('Loaded');
 };
 
 main();

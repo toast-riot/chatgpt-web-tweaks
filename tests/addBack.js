@@ -1,9 +1,5 @@
 // ==UserScript==
-// @name         ChatGPT tweaks
-// @description  Various tweaks for ChatGPT
-// @author       toast_riot
-// @namespace    https://github.com/toast-riot/chatgpt-web-tweaks
-// @version      0.0.1
+// @name         addBack
 // @match        *://chatgpt.com/*
 // @run-at       document-start
 // @grant        unsafeWindow
@@ -50,3 +46,32 @@ unsafeWindow.fetch = new Proxy(fetch, {
 
 })();
 
+unsafeWindow.fetch = new Proxy(fetch, {
+    apply: async function (target, thisArg, argumentsList) {
+        const [fetchUrl, fetchOptions] = argumentsList;
+
+        if (fetchUrl.includes('/backend-api/models')) {
+            try {
+                const realResponse = await target.apply(thisArg, argumentsList);
+                const data = await realResponse.json();
+
+                data.categories.push(customCategory);
+
+                return new Response(JSON.stringify(data), {
+                    status: 200,
+                    headers: { 'Content-Type': 'application/json' }
+                });
+            } catch (error) {
+                console.error('Error processing fetch response:', error);
+                throw error;
+            }
+        }
+
+        try {
+            return await target.apply(thisArg, argumentsList);
+        } catch (error) {
+            console.error('Fetch error:', error);
+            throw error;
+        }
+    }
+});
