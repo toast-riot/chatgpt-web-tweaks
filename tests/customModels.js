@@ -1,3 +1,14 @@
+// ==UserScript==
+// @name         ChatGPT tweaks
+// @description  Various tweaks for ChatGPT
+// @author       toast_riot
+// @namespace    https://github.com/toast-riot/chatgpt-web-tweaks
+// @version      0.0.1
+// @match        *://chatgpt.com/*
+// @run-at       document-start
+// @grant        unsafeWindow
+// ==/UserScript==
+
 (function () {
     "use strict";
 
@@ -36,6 +47,8 @@
 
     // // https://platform.openai.com/docs/models
     // // https://platform.openai.com/docs/deprecations
+    //https://greasyfork.org/ru/scripts/494909-chatgpt-backend-api-hook/code
+    //https://rentry.org/5a8vx (Includes account flags)
     // const MODELS = {
     //     //Official
     //     "Auto": "auto",
@@ -51,35 +64,66 @@
     //     "Unknown": "text-davinci-002",
     // };
 
-    //https://greasyfork.org/ru/scripts/494909-chatgpt-backend-api-hook/code
-    //https://rentry.org/5a8vx
 
-    const customModels = [
-        {name: "GPT-4", slug: "gpt-4", description: "GPT-4", short_name: "4", max_tokens: 8192},
-        {name: "GPT-4 (Turbo)", slug: "gpt-4-turbo", description: "GPT-4 Turbo", short_name: "4T", max_tokens: 128000}
+    // const customModels = [
+    //     {name: "GPT-3.5", slug: "text-davinci-002-render-sha", description: "GPT-3.5", short_name: "3.5", max_tokens: 16385}
+    // ];
+    const customModelsAndCategories = [
+        new ModelCategory({name: "Monke", slug: "text-davinci-002-render-sha", description: "Reject humanity", short_name: "M", max_tokens: 16385})
     ];
 
-    const originalFetch = window.fetch;
-    window.fetch = async function() {
-        if (arguments[0].includes('/backend-api/models')) {
-            const realResponse = await originalFetch.apply(this, arguments);
-            let data = await realResponse.json();
+    unsafeWindow.fetch = new Proxy(fetch, {
+        apply: function (target, thisArg, argumentsList) {
+            const [fetchUrl, fetchOptions] = argumentsList;
 
-            customModels.forEach(model => {
-                let customModel = new ModelCategory(model);
-                data.models.push(customModel.model);
-                data.categories.push(customModel.category);
-            });
+            if (fetchUrl.includes('/backend-api/models')) {
+                return new Promise((resolve, reject) => {
 
-            console.log(data);
+                    const realResponse = target.apply(thisArg, argumentsList);
+                    realResponse.then(async response => {
 
+                        let data = await response.json();
 
-            return new Response(JSON.stringify(data), {
-                status: 200,
-                headers: { 'Content-Type': 'application/json' }
-            });
+                        customModelsAndCategories.forEach(extra => {
+                            data.models.push(extra.model);
+                            data.categories.push(extra.category);
+                        });
+
+                        resolve(new Response(JSON.stringify(data), {
+                            status: 200,
+                            headers: { 'Content-Type': 'application/json' }
+                        }));
+
+                    });
+                });
+            }
+            return target.apply(thisArg, argumentsList)
+                .catch(console.error);
         }
-        return await originalFetch.apply(this, arguments);
-    };
+    })
+
+    // const originalFetch = window.fetch;
+    // window.fetch = async function() {
+    //     console.log("Fetching", arguments[0]);
+    //     if (arguments[0].includes('/backend-api/models')) {
+    //         const realResponse = await originalFetch.apply(this, arguments);
+    //         let data = await realResponse.json();
+
+    //         customModels.forEach(model => {
+    //             let customModel = new ModelCategory(model);
+    //             data.models.push(customModel.model);
+    //             data.categories.push(customModel.category);
+    //         });
+
+    //         console.log(data);
+
+
+    //         return new Response(JSON.stringify(data), {
+    //             status: 200,
+    //             headers: { 'Content-Type': 'application/json' }
+    //         });
+    //     }
+    //     return await originalFetch.apply(this, arguments);
+    // };
 
 })();

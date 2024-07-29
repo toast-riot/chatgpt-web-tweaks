@@ -38,7 +38,8 @@ const config = {
         overrideKey: 'Control',
         // Model to use when saving quota
         // I think OpenAI has implemented a check for whether the model is valid so any other models other than the ones in the GUI will just redirect to 3.5
-        model: "text-davinci-002-render-sha",
+        // You can use "text-davinci-002-render-sha" for GPT 3.5. This model is still officially provided in the web interface, it just does not have a category and is therefore not selectable
+        model: "gpt-4o-mini",
     },
 
     //- Element blocker
