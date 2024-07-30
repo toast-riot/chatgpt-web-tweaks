@@ -37,14 +37,14 @@ const config = {
     // Might not work for paid users
     quotaSaving: {
         enabled: false,
-        // Always override the model even if 4o is requested specifically
-        harshFiltering: false,
         // Key to hold to temporarily disable quota saving
         overrideKey: 'Control',
         // Model to use when saving quota
         // I think OpenAI has implemented a check for whether the model is valid so any other models other than the ones in the GUI will just redirect to 3.5
         // Use "text-davinci-002-render-sha" for GPT-3.5
-        model: "gpt-4o-mini",
+        savingModel: "gpt-4o-mini",
+        // Always override these models. Leave this as "auto" unless you know what you're doing
+        avoidModels: ["auto"]
     },
 
     //- Add more models. By default, this will just add GPT-3.5 back
@@ -115,22 +115,13 @@ const utils = {
         console.log('[ChatGPT Tweaks]', ...args);
     },
     updateModelParameter: function(sourceRequest) {
+        if (overrideKeyDown) { return sourceRequest }
         const requestData = JSON.parse(sourceRequest.body);
 
-        if (requestData.model === 'gpt-4o') {
-            if (config.quotaSaving.harshFiltering && !overrideKeyDown) {
-                requestData.model = config.quotaSaving.model;
-            }
+        if (config.quotaSaving.avoidModels.includes(requestData.model)) {
+            requestData.model = config.quotaSaving.savingModel;
+            utils.log('(QuotaSaving) Overriding model');
         }
-        else if (!overrideKeyDown) {
-            requestData.model = config.quotaSaving.model;
-        }
-
-        // requestData.model = prompt("Model", requestData.model);
-        // console.log(requestData);
-
-        // console.log(requestData.model);
-        // requestData.model = config.quotaSaving.model;
 
         return { ...sourceRequest, body: JSON.stringify(requestData) };
     }
@@ -149,24 +140,24 @@ const setup = {
     proxyFetch: function() {
         if (config.preventTracking.enabled) navigator.sendBeacon = () => {};
         unsafeWindow.fetch = new Proxy(fetch, {
-            apply: async function (target, thisArg, argumentsList) {
-                const [fetchUrl, fetchOptions] = argumentsList;
+            apply: async function (target, thisArg, reqArgs) {
+                const [url, options] = reqArgs;
 
-                if (config.preventTracking.enabled && config.preventTracking.trackingURLs.test(fetchUrl)) {
-                    utils.log('Blocked tracking request: ', fetchUrl);
+                if (config.preventTracking.enabled && config.preventTracking.trackingURLs.test(url)) {
+                    utils.log('(Prevent Tracking) Blocked tracking request: ', url);
                     return Promise.resolve({});
                 }
 
-                if (config.preventTracking.enabled && fetchUrl.includes('/backend-api/compliance')) {
+                if (config.preventTracking.enabled && url.includes('/backend-api/compliance')) {
                     return Promise.resolve({ json: () => config.complianceFix.response });
                 }
 
-                if (config.quotaSaving.enabled && fetchUrl.includes('/backend-api/conversation') && fetchOptions.method === "POST" && fetchOptions.body) {
-                    argumentsList[1] = utils.updateModelParameter(fetchOptions);
+                if (config.quotaSaving.enabled && url.includes('/backend-api/conversation') && options.method === "POST" && options.body.includes('"action":"')) {
+                    reqArgs[1] = utils.updateModelParameter(reqArgs[1]);
                 }
 
-                if (config.moreModels.enabled && fetchUrl.includes('/backend-api/models')) {
-                    const realResponse = await target.apply(thisArg, argumentsList);
+                if (config.moreModels.enabled && url.includes('/backend-api/models') && options.method === "GET") {
+                    const realResponse = await target.apply(thisArg, reqArgs);
                     const data = await realResponse.json();
 
                     data.categories.push(...config.moreModels.categories);
@@ -178,7 +169,7 @@ const setup = {
                     });
                 }
 
-                return await target.apply(thisArg, argumentsList)
+                return await target.apply(thisArg, reqArgs)
                     .catch(console.error);
             }
         })
