@@ -71,6 +71,7 @@ const config = {
             '.md\\:px-\\[60px\\].text-token-text-secondary.text-xs.text-center.py-2.px-2.relative > span': true,
             //Chat suggestions
             '.gap-4.justify-center.items-stretch.flex-wrap.max-w-3xl.flex.mt-12.mx-3': true,
+            '.z-20.right-0.left-0.bottom-full.absolute': true,
             //GPT pfp
             '.items-end.relative.flex-col.flex.flex-shrink-0': true,
 
@@ -172,7 +173,7 @@ const setup = {
                 return await target.apply(thisArg, reqArgs)
                     .catch(console.error);
             }
-        })
+        });
     },
 
     customTab: function() {
@@ -212,7 +213,7 @@ const setup = {
         style.textContent = css;
         document.head.appendChild(style);
     }
-}
+};
 
 function main() {
     Object.values(setup).forEach(func => func());
