@@ -71,7 +71,7 @@ const config = {
             '.md\\:px-\\[60px\\].text-token-text-secondary.text-xs.text-center.py-2.px-2.relative > span': true,
             //Chat suggestions
             '.gap-4.justify-center.items-stretch.flex-wrap.max-w-3xl.flex.mt-12.mx-3': true,
-            '.z-20.right-0.left-0.bottom-full.absolute': true,
+            '.z-20.right-0.left-0.bottom-full.absolute > .relative.h-full.w-full.mb-4 > .flex.flex-col.gap-3\\.5.pt-2': true,
             //GPT pfp
             '.items-end.relative.flex-col.flex.flex-shrink-0': true,
 
@@ -195,23 +195,25 @@ const setup = {
     },
 
     customCSS: function() {
-        let css = '';
+        document.addEventListener('DOMContentLoaded', () => {
+            let css = '';
 
-        if (config.customCSS.enabled) {
-            css += config.customCSS.CSS;
-        }
+            if (config.customCSS.enabled) {
+                css += config.customCSS.CSS;
+            }
 
-        if (config.elementBlocker.enabled) {
-            Object.entries(config.elementBlocker.blockElements).forEach(([selector, block]) => {
-                if (!block) return;
-                css += `${selector} {\n\t${config.elementBlocker.debug ? 'outline: 1px solid red !important' : 'display: none !important'};\n}\n`;
-            });
-        }
+            if (config.elementBlocker.enabled) {
+                Object.entries(config.elementBlocker.blockElements).forEach(([selector, block]) => {
+                    if (!block) return;
+                    css += `${selector} {\n\t${config.elementBlocker.debug ? 'outline: 1px solid red !important' : 'display: none !important'};\n}\n`;
+                });
+            }
 
-        if (!css) return;
-        const style = document.createElement('style');
-        style.textContent = css;
-        document.head.appendChild(style);
+            if (!css) return;
+            const style = document.createElement('style');
+            style.textContent = css;
+            document.head.appendChild(style);
+        });
     }
 };
 
