@@ -128,14 +128,15 @@ const utils = {
     }
 }
 
-const setup = {
-    controlKeyListener: function controlKeyListener() {
+const docStart = {
+    overrideKeyListener: function() {
         addEventListener('keydown', function(event) {
             if (event.key === config.quotaSaving.overrideKey) overrideKeyDown = true;
         });
         addEventListener('keyup', function(event) {
             if (event.key === config.quotaSaving.overrideKey) overrideKeyDown = false;
         });
+        utils.log('Loaded overrideKeyListener');
     },
 
     proxyFetch: function() {
@@ -174,6 +175,7 @@ const setup = {
                     .catch(console.error);
             }
         });
+        utils.log('Loaded proxyFetch');
     },
 
     customTab: function() {
@@ -183,43 +185,50 @@ const setup = {
             node.href = config.customTab.icon;
         });
 
-        document.title = config.customTab.title;
-
         const originalTitle = document.title;
+        const titleElement = document.querySelector('title');
         Object.defineProperty(document, 'title', {
             get: function() {
                 return originalTitle;
             },
-            set: function(title) {}
+            set: function(title) {
+                titleElement.textContent = config.customTab.title;
+            }
         });
-    },
+        utils.log('Loaded customTab');
+    }
+};
 
+const docReady = {
     customCSS: function() {
-        document.addEventListener('DOMContentLoaded', () => {
-            let css = '';
+        let css = '';
 
-            if (config.customCSS.enabled) {
-                css += config.customCSS.CSS;
-            }
+        if (config.customCSS.enabled) {
+            css += config.customCSS.CSS;
+        }
 
-            if (config.elementBlocker.enabled) {
-                Object.entries(config.elementBlocker.blockElements).forEach(([selector, block]) => {
-                    if (!block) return;
-                    css += `${selector} {\n\t${config.elementBlocker.debug ? 'outline: 1px solid red !important' : 'display: none !important'};\n}\n`;
-                });
-            }
+        if (config.elementBlocker.enabled) {
+            Object.entries(config.elementBlocker.blockElements).forEach(([selector, block]) => {
+                if (!block) return;
+                css += `${selector} {\n\t${config.elementBlocker.debug ? 'outline: 1px solid red !important' : 'display: none !important'};\n}\n`;
+            });
+        }
 
-            if (!css) return;
-            const style = document.createElement('style');
-            style.textContent = css;
-            document.head.appendChild(style);
-        });
+        if (!css) return;
+        const style = document.createElement('style');
+        style.textContent = css;
+        document.head.appendChild(style);
+
+        utils.log('Loaded customCSS');
     }
 };
 
 function main() {
-    Object.values(setup).forEach(func => func());
-    utils.log('Loaded');
+    Object.values(docStart).forEach(func => func());
+    document.addEventListener('DOMContentLoaded', () => {
+        Object.values(docReady).forEach(func => func());
+    });
+    utils.log('Loaded main');
 };
 
 main();
